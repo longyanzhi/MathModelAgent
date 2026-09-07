@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="settings-page-html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: ['class'],
+        theme: {
+          extend: {
+            colors: {
+              border: 'hsl(214, 32%, 91%)',
+              input: 'hsl(214, 32%, 91%)',
+              ring: 'hsl(221, 83%, 53%)',
+              background: 'hsl(0, 0%, 100%)',
+              foreground: 'hsl(222, 47%, 11%)',
+              primary: { DEFAULT: 'hsl(221, 83%, 53%)', foreground: 'hsl(210, 40%, 98%)' },
+              secondary: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              muted: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(215, 16%, 47%)' },
+              accent: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              destructive: { DEFAULT: 'hsl(0, 84%, 60%)', foreground: 'hsl(210, 40%, 98%)' },
+              card: { DEFAULT: 'hsl(0, 0%, 100%)', foreground: 'hsl(222, 47%, 11%)' },
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-background min-h-screen settings-page">
+    <div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold">Meeting Settings</h1>
+                <p class="text-sm text-muted-foreground">Configure meeting rounds and context (save and return to main page to start meeting)</p>
+            </div>
+            <a href="/" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">Back to Home</a>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card shadow-card p-5 space-y-5">
+            <div class="space-y-2">
+                <label class="text-sm font-medium" for="maxTurns">Maximum Total Rounds</label>
+                <input id="maxTurns" type="number" min="1" max="100" value="5" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <p class="text-xs text-muted-foreground">Maximum overall meeting round limit</p>
+            </div>
+
+            <div class="space-y-3">
+                <label class="text-sm font-medium">Phase Auto-Run Rounds Configuration</label>
+                <p class="text-xs text-muted-foreground">Configure auto-run rounds for each phase (can still manually continue after reaching the limit)</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs text-muted-foreground" for="phaseTurnsProblemAnalysis">Problem Analysis Phase</label>
+                        <input id="phaseTurnsProblemAnalysis" type="number" min="1" max="50" value="20" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs text-muted-foreground" for="phaseTurnsModelDesign">Model Design Phase</label>
+                        <input id="phaseTurnsModelDesign" type="number" min="1" max="50" value="20" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs text-muted-foreground" for="phaseTurnsModelBuilding">Model Building Phase</label>
+                        <input id="phaseTurnsModelBuilding" type="number" min="1" max="50" value="20" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs text-muted-foreground" for="phaseTurnsPaperWriting">Paper Writing Phase</label>
+                        <input id="phaseTurnsPaperWriting" type="number" min="1" max="50" value="30" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                    </div>
+                </div>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" id="enableSearch" class="h-4 w-4 rounded border-border text-primary focus:ring-primary">
+                Enable Web Search (if model supports)
+            </label>
+
+            <div class="space-y-2">
+                <label class="text-sm font-medium" for="contextFiles">Pre-Meeting Reference Files</label>
+                <div class="space-y-2">
+                    <input type="file" id="fileUpload" multiple class="hidden" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md,.csv,.json,.docx,.doc">
+                    <button type="button" id="fileUploadBtn" class="inline-flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">📁 Select Files to Upload</button>
+                    <div id="uploadedFilesList" class="rounded-md border border-dashed border-border bg-muted/50 p-3 text-xs text-muted-foreground max-h-48 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="saveSettingsBtn" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors">Save Settings</button>
+                <span id="saveHint" class="text-xs text-muted-foreground"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>

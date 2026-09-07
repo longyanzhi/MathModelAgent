@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" class="settings-page-html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: ['class'],
+        theme: {
+          extend: {
+            colors: {
+              border: 'hsl(214, 32%, 91%)',
+              input: 'hsl(214, 32%, 91%)',
+              ring: 'hsl(221, 83%, 53%)',
+              background: 'hsl(0, 0%, 100%)',
+              foreground: 'hsl(222, 47%, 11%)',
+              primary: { DEFAULT: 'hsl(221, 83%, 53%)', foreground: 'hsl(210, 40%, 98%)' },
+              secondary: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              muted: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(215, 16%, 47%)' },
+              accent: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              destructive: { DEFAULT: 'hsl(0, 84%, 60%)', foreground: 'hsl(210, 40%, 98%)' },
+              card: { DEFAULT: 'hsl(0, 0%, 100%)', foreground: 'hsl(222, 47%, 11%)' },
+            },
+            borderRadius: { lg: '12px', md: '10px', sm: '8px' },
+            boxShadow: { card: '0 8px 30px rgba(15, 23, 42, 0.08)' }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-background min-h-screen settings-page">
+    <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold">Model Management</h1>
+                <p class="text-sm text-muted-foreground">Add, remove and configure AI models used in meetings</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="/" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">Back to Home</a>
+                <a href="/settings" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">Meeting Settings</a>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card shadow-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Built-in Models</h2>
+                <span class="text-xs text-muted-foreground">Curated by the system</span>
+            </div>
+            <div id="builtinModelsList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card shadow-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Custom Models</h2>
+                <button id="addModelBtn" class="inline-flex h-10 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium shadow hover:bg-primary/90 transition-colors">
+                    + Add Custom Model
+                </button>
+            </div>
+            <div id="userModelsList" class="space-y-3"></div>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card shadow-card p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold">Selected Models for Meetings</h2>
+                <button id="saveSelectionBtn" class="inline-flex h-10 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium shadow hover:bg-primary/90 transition-colors">Save Selection</button>
+            </div>
+            <p class="text-xs text-muted-foreground">Choose which roles should use which model. Leave a role's selection empty to use the system default.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="text-xs text-muted-foreground">Project Manager</label>
+                    <select id="roleSelectionProjectManager" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"></select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs text-muted-foreground">Domain Expert</label>
+                    <select id="roleSelectionDomainExpert" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"></select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs text-muted-foreground">Critic</label>
+                    <select id="roleSelectionCritic" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"></select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs text-muted-foreground">Model Architect</label>
+                    <select id="roleSelectionArchitect" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"></select>
+                </div>
+                <div class="space-y-1 md:col-span-2">
+                    <label class="text-xs text-muted-foreground">Paper Writer</label>
+                    <select id="roleSelectionPaperWriter" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"></select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Model Dialog -->
+    <div id="modelDialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div class="bg-card rounded-lg p-6 max-w-lg w-full mx-4 border border-border shadow-xl">
+            <h3 class="text-lg font-semibold mb-3" id="modelDialogTitle">Add Custom Model</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-muted-foreground">Display Name</label>
+                    <input id="fieldName" type="text" placeholder="my-gpt-4o" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-muted-foreground">Provider</label>
+                        <select id="fieldProvider" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="gemini">Gemini</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-muted-foreground">Model ID</label>
+                        <input id="fieldModel" type="text" placeholder="gpt-4o" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-muted-foreground">Category</label>
+                    <select id="fieldCategory" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                        <option value="text_dialogue">Text Dialogue</option>
+                        <option value="deep_thinking">Deep Thinking</option>
+                        <option value="academic_writing">Academic Writing</option>
+                        <option value="code_programming">Code Programming</option>
+                        <option value="vision">Vision</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-muted-foreground">Base URL (optional)</label>
+                    <input id="fieldBaseUrl" type="text" placeholder="https://api.openai.com/v1" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                </div>
+                <div>
+                    <label class="text-xs text-muted-foreground">API Key (optional, overrides global)</label>
+                    <input id="fieldApiKey" type="password" placeholder="sk-..." class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-muted-foreground">Max Tokens</label>
+                        <input id="fieldMaxTokens" type="number" min="100" max="32000" placeholder="leave empty = default" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-muted-foreground">API Max Retries</label>
+                        <input id="fieldMaxRetries" type="number" min="0" max="10" value="0" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-muted-foreground">Description</label>
+                    <input id="fieldDescription" type="text" placeholder="short description (optional)" class="flex h-10 w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+                </div>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" id="fieldVisionCapable" class="h-4 w-4 rounded border-border text-primary focus:ring-primary">
+                    Vision-capable (image/PDF recognition)
+                </label>
+            </div>
+            <div class="flex gap-2 justify-end mt-5">
+                <button id="modelDialogCancel" class="px-4 h-9 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent">Cancel</button>
+                <button id="modelDialogConfirm" class="px-4 h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/models.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,601 @@
+/* Lightweight shadcn-ui style with Tailwind CDN */
+:root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --card: 0 0% 100%;
+    --ring: 221 83% 53%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* Main page: disable body scroll (use internal scrolling) */
+html:not(.settings-page-html),
+body:not(.settings-page) {
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+/* Settings page allows scrolling */
+html.settings-page-html,
+body.settings-page {
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Ensure top-level container has correct height (main page only) */
+body:not(.settings-page) .bg-background.min-h-screen {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure main content area calculates height correctly (main page only) */
+body:not(.settings-page) .flex.w-full.min-h-screen {
+    height: 100vh;
+    max-height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Ensure scroll containers work properly */
+.overflow-y-auto {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    /* Ensure explicit height limits for scrolling */
+    max-height: 100%;
+}
+
+/* Ensure flex containers calculate height correctly */
+.flex.flex-col.flex-1.min-h-0 {
+    min-height: 0;
+    max-height: 100%;
+}
+
+/* Hide scrollbar visually but keep scrolling capability */
+.no-scrollbar {
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE/Edge legacy */
+}
+.no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;                /* Chrome / Safari / Opera */
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.messages-container {
+    /* Message container itself doesn't scroll, let parent handle scrolling */
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.message {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    animation: fadeIn 0.2s ease;
+}
+
+.message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.message-role {
+    font-weight: 600;
+}
+
+.message-turn {
+    font-size: 0.9rem;
+    color: #64748b;
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.message-content {
+    line-height: 1.6;
+    color: hsl(var(--foreground));
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.message.moderator { border-left: 4px solid #0284c7; background: #e0f2fe; }
+.message.expert { border-left: 4px solid #2563eb; background: #eff6ff; }
+.message.analyst { border-left: 4px solid #7c3aed; background: #f3e8ff; }
+.message.decision { border-left: 4px solid #22c55e; background: #ecfdf3; }
+.message.architect { border-left: 4px solid #f59e0b; background: #fff7ed; }
+.message.user { border-left: 4px solid #ec4899; background: #fdf2f8; }
+.message.external-resource { border-left: 4px solid #4f46e5; background: #eef2ff; }
+.message.status { border-left: 4px solid #94a3b8; background: #f8fafc; font-style: italic; }
+
+/* v2 DAG badges */
+.message-model-badge {
+    font-size: 0.7rem;
+    color: #6366f1;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-family: ui-monospace, monospace;
+}
+.message-branch-badge {
+    font-size: 0.7rem;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+
+.status-info { display: flex; gap: 8px; align-items: center; }
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+}
+.status-badge.idle { background: #f1f5f9; color: #334155; }
+.status-badge.running { background: #e0f2fe; color: #0369a1; }
+.status-badge.completed { background: #dcfce7; color: #15803d; }
+.status-badge.paused { background: #fef9c3; color: #854d0e; }
+.status-badge.error { background: #fee2e2; color: #b91c1c; }
+
+.role-chip {
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: left;
+}
+
+.report-content {
+    line-height: 1.7;
+}
+
+.report-content pre,
+.messages-container pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 12px;
+    border-radius: 10px;
+    overflow-x: auto;
+    overflow-y: auto; /* allow vertical scrolling when content is tall */
+    max-height: 60vh; /* constrain height so it doesn't get clipped by viewport-fixed parents */
+    white-space: pre-wrap; /* wrap long lines when appropriate */
+    word-break: break-word;
+    box-sizing: border-box;
+}
+
+.report-content code,
+.messages-container code {
+    background: #f1f5f9;
+    padding: 2px 4px;
+    border-radius: 6px;
+}
+
+/* Scrollbar styles - applied to all scrollable containers */
+.overflow-y-auto::-webkit-scrollbar,
+.messages-container::-webkit-scrollbar,
+.report-content::-webkit-scrollbar {
+    width: 8px;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.messages-container::-webkit-scrollbar-thumb,
+.report-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.messages-container::-webkit-scrollbar-thumb:hover,
+.report-content::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Scrollbar track */
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel-section {
+    border-top: 1px solid hsl(var(--border));
+    padding-top: 10px;
+}
+
+.welcome-message {
+    text-align: center;
+    padding: 24px;
+    color: #64748b;
+}
+
+.welcome-message h3 {
+    margin-bottom: 10px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure stop button displays/hides correctly */
+#stopBtn {
+    /* Hidden by default, but can be overridden via JS */
+}
+
+/* When needed to show, force display */
+#stopBtn.show,
+#stopBtn[style*="display: flex"],
+#stopBtn[style*="display:flex"],
+#stopBtn[style*="display: block"],
+#stopBtn[style*="display:block"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* LaTeX / language-latex specific styles: white background with dark text, override dark code block styles */
+/* Compatible with highlight.js/marked class names: `language-latex` may appear on pre or code elements */
+.report-content pre.language-latex,
+.messages-container pre.language-latex,
+.report-content pre > code.language-latex,
+.messages-container pre > code.language-latex {
+    background: #ffffff !important;
+    color: #0f172a !important; /* dark text */
+    border: 1px solid #e5e7eb;
+    padding: 12px;
+    border-radius: 10px;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    /* wrap and use vertical scrolling (avoid horizontal scroll) */
+    white-space: pre-wrap; /* allow long lines to wrap */
+    word-break: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 60vh; /* vertical scroll when exceeding this height */
+    line-height: 1.6;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    font-size: 0.95rem;
+    margin: 0.75rem 0;
+}
+
+/* Ensure code elements inside code blocks inherit color and don't use inline gray background */
+.report-content pre.language-latex code,
+.messages-container pre.language-latex code {
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* Higher priority: in prose containers, ensure pre has white background with dark text and proper layout */
+.report-content.prose pre.language-latex,
+.messages-container.prose pre.language-latex {
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.6;
+}
+
+/* Match Paper-generator LaTeX codeblock selectors and styles (code inside pre) */
+.report-content pre code.language-latex,
+.messages-container pre code.language-latex,
+.report-content pre code.latex,
+.messages-container pre code.latex {
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 12px;
+    border-radius: 8px;
+    display: block;
+    /* allow wrapping so long LaTeX lines don't overflow */
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    font-family: "Source Code Pro", "Courier New", monospace;
+    /* Remove nested scrollbar: let the outer <pre> handle scrolling.
+       Ensure the inner code wraps and expands to full width, but does not introduce its own scroll. */
+    overflow: visible;
+    max-height: none;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* ===== v2: DAG / Meeting Flow Panel ===== */
+.meeting-dag-panel {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+.meeting-dag-panel.collapsed {
+    padding-bottom: 4px;
+}
+.meeting-dag-panel.collapsed #meetingDagBody { display: none; }
+.meeting-dag-panel:not(.collapsed) {
+    /* Expanded: cap to viewport so the right column never gets pushed off,
+       and scroll internally when the DAG is tall. */
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.dag-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    border-bottom: 1px solid hsl(var(--border));
+    margin-bottom: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+.dag-toggle-btn {
+    background: none;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.dag-body {
+    /* Avoid sticky positioning surprises; let the parent scroll handle overflow. */
+    position: relative;
+}
+.dag-node {
+    padding: 3px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    transition: background 0.15s;
+    line-height: 1.4;
+    flex-wrap: wrap;
+}
+.dag-node:hover { background: hsl(var(--muted)); }
+
+/* Flat DAG layout: all nodes share the same indent level */
+.dag-node-flat {
+    margin-left: 0 !important;
+    border-left: 2px solid transparent;
+    padding-left: 8px;
+}
+.dag-node-flat:hover {
+    border-left-color: #6366f1;
+}
+.dag-depth-cue {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-family: ui-monospace, monospace;
+    min-width: 26px;
+    display: inline-block;
+}
+.dag-depth-root {
+    color: #10b981;
+    font-size: 0.7rem;
+}
+.dag-role { font-weight: 600; color: hsl(var(--foreground)); }
+.dag-model { font-size: 0.65rem; color: #6366f1; background: #eef2ff; padding: 0 4px; border-radius: 4px; }
+.dag-branch { font-size: 0.65rem; color: #b45309; background: #fef3c7; padding: 0 4px; border-radius: 4px; }
+.dag-preview { color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; flex: 1 1 120px; min-width: 0; }
+.dag-child-count { color: #94a3b8; font-size: 0.65rem; }
+.dag-empty { color: #94a3b8; font-size: 0.75rem; text-align: center; padding: 8px; }
+
+/* ===== v2: Branch Comparison Panel ===== */
+.branch-compare-panel {
+    background: hsl(var(--card));
+    border: 2px solid #6366f1;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.compare-header {
+    margin-bottom: 12px;
+}
+
+.compare-header h4 {
+    margin: 0 0 4px 0;
+    color: hsl(var(--foreground));
+    font-size: 1rem;
+}
+
+.compare-tip {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.compare-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.compare-result-item {
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.compare-result-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.compare-model {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    font-size: 0.9rem;
+}
+
+.compare-result-preview {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    max-height: 80px;
+    overflow: hidden;
+}
+
+.compare-use-btn {
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.compare-use-btn:hover {
+    background: #4f46e5;
+}
+
+/* ===== v2: Dynamic Panels ===== */
+
+/* Contextual panel states */
+.panel-context-phase-confirm .phase-panel { display: block !important; }
+.panel-context-file-upload .file-upload-panel { display: block !important; }
+.panel-context-model-select .model-select-panel { display: block !important; }
+.panel-context-dag-view .dag-panel { display: block !important; }
+
+/* Collapsible sections */
+.collapsible-section {
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: hsl(var(--muted));
+    cursor: pointer;
+    user-select: none;
+}
+
+.collapsible-header:hover {
+    background: hsl(var(--border));
+}
+
+.collapsible-content {
+    padding: 12px;
+    display: none;
+}
+
+.collapsible-section.expanded .collapsible-content {
+    display: block;
+}
+
+.collapsible-section.expanded .collapsible-header .collapse-arrow {
+    transform: rotate(180deg);
+}
+
+.collapse-arrow {
+    transition: transform 0.2s;
+}
+
+/* ===== v2: Rollback UI ===== */
+.message-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid hsl(var(--border));
+}
+
+.msg-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.msg-action-btn:hover {
+    background: hsl(var(--border));
+}
+
+.msg-action-btn[data-action="rollback"] {
+    color: #dc2626;
+}
+
+.msg-action-btn[data-action="rollback"]:hover {
+    background: #fee2e2;
+}
+
+/* ===== v2: Branch indicators in message list ===== */
+.message.has-branch {
+    position: relative;
+}
+
+.message.has-branch::before {
+    content: '*';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.7rem;
+    color: #b45309;
+}
+
+/* ===== v2: Mermaid diagram styling ===== */
+.mermaid-diagram {
+    margin: 12px 0;
+    padding: 12px;
+    background: hsl(var(--muted));
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.mermaid svg {
+    max-width: 100%;
+    height: auto;
+}

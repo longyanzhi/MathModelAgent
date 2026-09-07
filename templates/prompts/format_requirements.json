@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "format_requirements": {
+    "markdown_for_architect": "Use Markdown: headings (#, ##, ###), lists (-, *), tables, bold (**), code blocks.",
+    "latex_for_paper_writer": "Wrap LaTeX in ```latex ... ``` block. Use \\section{}, \\subsection{}, $...$, \\[...\\], tables and figures.",
+    "abstract_per_problem": "When the problem statement contains multiple sub-problems (e.g. Problem 1, 2, 3), the abstract should briefly describe the approach used for each.",
+    "team_template_aware": "Paper Writer selects one of two section templates based on the team template in use. The team_template_id is recorded in the manifest and surfaces in the system prompt."
+  },
+  "templates": {
+    "competition": {
+      "name": "MCM/ICM 12-section LaTeX template",
+      "paper_constraints": [
+        "Use LaTeX format with the MCM/ICM 12-section structure (Cover Page, TOC, Introduction, Modeling Preparation, Problem 1 Modeling, Problem 2 Modeling, Problem 3 Modeling, Sensitivity Analysis, Model Evaluation, Memo, References, AI Usage Report).",
+        "All content must be written in English.",
+        "Wrap LaTeX with a ```latex fenced markdown block.",
+        "Use standard LaTeX commands and structure so the output compiles with MiKTeX.",
+        "Target ~25 pages, ensure every section has substantial content.",
+        "Problem 1 section must be the most detailed (6-8 pages, 3-5 figures/tables).",
+        "Problem 2 section must be moderate (4-5 pages, 2-3 figures/tables).",
+        "Problem 3 must be concise (2-3 pages, 1-2 figures/tables).",
+        "Each iteration must extend the paper, not repeat."
+      ],
+      "sections": [
+        "Cover Page (Abstract + Keywords)",
+        "Table of Contents",
+        "Introduction",
+        "Modeling Preparation",
+        "Problem 1 Modeling",
+        "Problem 2 Modeling",
+        "Problem 3 Modeling / New Insights",
+        "Sensitivity / Robustness Analysis",
+        "Model Evaluation",
+        "Memo",
+        "References",
+        "AI Usage Report"
+      ]
+    },
+    "generic": {
+      "name": "Generic 12-section analytical report template",
+      "paper_constraints": [
+        "Use LaTeX format with the generic 12-section structure (Executive Summary, Problem Statement & Background, Data & Materials, Modeling Assumptions, Methodology & Model Description, Solution Procedure, Results & Analysis, Model Evaluation & Validation, Sensitivity & Robustness Analysis, Decision Recommendations, Limitations & Future Work, Reproducibility & References).",
+        "All content must be written in English.",
+        "Wrap LaTeX with a ```latex fenced markdown block.",
+        "Use standard LaTeX commands and structure so the output compiles with MiKTeX.",
+        "Reports should be comprehensive and self-contained. Section length should reflect problem complexity.",
+        "Each iteration must extend the report, not repeat."
+      ],
+      "sections": [
+        "Executive Summary",
+        "Problem Statement & Background",
+        "Data & Materials",
+        "Modeling Assumptions",
+        "Methodology & Model Description",
+        "Solution Procedure",
+        "Results & Analysis",
+        "Model Evaluation & Validation",
+        "Sensitivity & Robustness Analysis",
+        "Decision Recommendations",
+        "Limitations & Future Work",
+        "Reproducibility & References"
+      ]
+    }
+  }
+}

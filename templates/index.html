@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Meeting System</title>
+
+    <!-- Tailwind + shadcn style config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: ['class'],
+        theme: {
+          extend: {
+            colors: {
+              border: 'hsl(214, 32%, 91%)',
+              input: 'hsl(214, 32%, 91%)',
+              ring: 'hsl(221, 83%, 53%)',
+              background: 'hsl(0, 0%, 100%)',
+              foreground: 'hsl(222, 47%, 11%)',
+              primary: { DEFAULT: 'hsl(221, 83%, 53%)', foreground: 'hsl(210, 40%, 98%)' },
+              secondary: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              muted: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(215, 16%, 47%)' },
+              accent: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              destructive: { DEFAULT: 'hsl(0, 84%, 60%)', foreground: 'hsl(210, 40%, 98%)' },
+              card: { DEFAULT: 'hsl(0, 0%, 100%)', foreground: 'hsl(222, 47%, 11%)' },
+            },
+            borderRadius: {
+              lg: '12px',
+              md: '10px',
+              sm: '8px',
+            },
+            boxShadow: {
+              card: '0 8px 30px rgba(15, 23, 42, 0.08)',
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(10000, 99999) | random }}">
+
+    <!-- Markdown rendering and code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <!-- KaTeX math formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"
+            onload="configureMarkdownOnLoad()"
+            onerror="loadMarkedFallback()"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script>
+        window.configureMarkdownOnLoad = function() {
+            if (typeof marked !== 'undefined') {
+                try {
+                    if (typeof marked.use === 'function') {
+                        marked.use({ breaks: true, gfm: true, langPrefix: 'language-' });
+                        window.markdownReady = true;
+                    } else if (typeof marked.setOptions === 'function') {
+                        marked.setOptions({ breaks: true, gfm: true, langPrefix: 'language-' });
+                        window.markdownReady = true;
+                    } else {
+                        window.markdownReady = true;
+                    }
+                } catch (err) {
+                    console.error('Failed to configure Markdown renderer:', err);
+                    window.markdownReady = false;
+                }
+            } else {
+                window.markdownReady = false;
+            }
+        };
+        if (typeof marked !== 'undefined') { configureMarkdownOnLoad(); }
+        window.loadMarkedFallback = function() {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/marked@11.1.1/marked.min.js';
+            script.onload = configureMarkdownOnLoad;
+            script.onerror = function() { window.markdownReady = false; };
+            document.head.appendChild(script);
+        };
+    </script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <div class="bg-background min-h-screen">
+        <div class="flex w-full px-3 md:px-6 min-h-screen">
+            <!-- Left sidebar -->
+            <aside class="hidden md:flex flex-col items-center gap-3 px-3 py-6 w-16 border-r border-border bg-card flex-shrink-0">
+                <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">🤖</div>
+                <a href="/settings" title="Meeting Settings"
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">⚙️</a>
+                <a href="/models" title="Model Management"
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">🧠</a>
+                <a href="/latex" title="LaTeX Editor"
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">📝</a>
+                <a href="/python" title="Python Execution"
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">🐍</a>
+            </aside>
+
+            <main class="flex flex-col flex-1 px-4 md:px-6 py-4 min-w-0">
+                <!-- Mobile top bar -->
+                <div class="flex items-center justify-end gap-2 md:hidden mb-3 flex-shrink-0">
+                    <a href="/settings" title="Meeting Settings"
+                       class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">⚙️</a>
+                    <a href="/models" title="Model Management"
+                       class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">🧠</a>
+                    <a href="/latex" title="LaTeX Editor"
+                       class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">📝</a>
+                    <a href="/python" title="Python Execution"
+                       class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">🐍</a>
+                </div>
+
+                <!-- Main area -->
+                <div class="flex gap-4 flex-1 min-h-0">
+                    <!-- Message stream / AI conversation -->
+                    <div class="flex-1 min-w-0 flex flex-col min-h-0">
+                        <div class="rounded-xl border border-border bg-card shadow-card overflow-hidden flex flex-col flex-1 min-h-0 mb-4">
+                            <div class="p-4 md:p-6 flex-1 overflow-y-auto min-h-0">
+                                <div id="messages" class="messages-container space-y-3">
+                                    <div class="rounded-lg border border-dashed border-border bg-muted/40 p-6 text-xs text-muted-foreground">
+                                        <h3 class="text-sm font-medium text-foreground mb-2">Welcome to AI Meeting System</h3>
+                                        <p>Please open "Meeting Settings" to configure the topic and click "Start Meeting". The system will organize multiple AI agents for collaborative discussion.</p>
+                                    </div>
+                                </div>
+
+                                <div id="reportSection" class="report-section hidden mt-6">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h3 class="text-lg font-semibold">📄 Final Report</h3>
+                                        <span class="text-xs text-muted-foreground">Completed</span>
+                                    </div>
+                                    <div id="reportContent" class="report-content prose max-w-none"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom input bar -->
+                        <div class="relative flex-shrink-0 sticky bottom-0 bg-background pb-4">
+                            <textarea placeholder="Enter meeting topic or instruction here, press Enter to start/send"
+                                      rows="3"
+                                      class="flex min-h-[72px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 overflow-y-auto resize-none"
+                                      id="topicMainInput"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Right sidebar -->
+                    <aside class="hidden md:flex flex-col w-72 flex-shrink-0 self-stretch">
+                        <div class="rounded-xl border border-border bg-card shadow-card p-4 flex flex-col gap-3 flex-1 min-h-0">
+                            <div class="flex flex-col gap-3 overflow-y-auto flex-1 min-h-0 pr-1 no-scrollbar">
+                                <div class="rounded-md border border-border bg-muted/30 p-2 mb-2">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-xs font-medium text-muted-foreground">Mode</span>
+                                        <div id="modeBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Meeting</div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        <button id="modeMeetingBtn" data-mode="meeting"
+                                                class="mode-toggle-btn h-8 rounded-md border border-primary bg-primary text-primary-foreground text-xs font-medium transition-colors">
+                                            🤝 Meeting
+                                        </button>
+                                        <button id="modeChatBtn" data-mode="chat"
+                                                class="mode-toggle-btn h-8 rounded-md border border-input bg-background text-xs font-medium transition-colors hover:bg-accent">
+                                            💬 Chat
+                                        </button>
+                                    </div>
+                                    <div id="chatModelRow" class="mt-2 hidden">
+                                        <label class="text-[10px] text-muted-foreground">Chat Model</label>
+                                        <select id="chatModelSelect" class="w-full h-8 px-2 mt-0.5 rounded-md border border-input bg-background text-xs">
+                                            <option value="">Loading...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 mb-2">
+                                    <button id="clearBtn" class="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">Clear</button>
+                                    <button id="exportBtn" class="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">Export</button>
+                                </div>
+                                <div class="flex gap-2 mb-2">
+                                    <button id="fileUploadBtnInInput"
+                                            class="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            title="Upload File">
+                                        Upload File
+                                    </button>
+                                    <button id="compareModelsBtn"
+                                            class="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            title="Multi-model Comparison"
+                                            onclick="openCompareDialog()">
+                                        Compare
+                                    </button>
+                                </div>
+                                
+                                <!-- Vision Model Selection -->
+                                <div class="rounded-md border border-border bg-muted/30 p-2 mb-2">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <span class="text-xs font-medium text-muted-foreground">Vision Model</span>
+                                        <span id="visionStatus" class="text-[10px] text-muted-foreground">—</span>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <div>
+                                            <label class="text-[10px] text-muted-foreground">Provider</label>
+                                            <select id="visionProviderSelect" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs" onchange="onVisionProviderChange()">
+                                                <option value="auto">Auto (try all)</option>
+                                                <option value="openai">OpenAI</option>
+                                                <option value="huggingface">Hugging Face</option>
+                                            </select>
+                                        </div>
+                                        <div id="visionModelContainer" class="hidden">
+                                            <label class="text-[10px] text-muted-foreground">Model</label>
+                                            <select id="visionModelSelect" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                                <option value="">Default</option>
+                                            </select>
+                                        </div>
+                                        <button onclick="initVisionModels()" class="w-full h-7 rounded-md border border-input bg-background text-[10px] font-medium hover:bg-accent">
+                                            Refresh Models
+                                        </button>
+                                    </div>
+                                </div>
+                                <button id="stopBtn" class="w-full inline-flex items-center justify-center rounded-md bg-destructive text-destructive-foreground px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-destructive/90" style="display: none;">
+                                    Stop Meeting
+                                </button>
+                                <div class="flex gap-2 mb-2">
+                                    <button id="saveBtn" class="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground" title="Save Conversation">Save</button>
+                                    <button id="loadBtn" class="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground" title="Load Conversation">Load</button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-muted-foreground">Current Phase:</span>
+                                    <span id="currentPhaseLabel" class="text-sm font-semibold text-primary">—</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span id="status" class="status-info">
+                                        <span class="status-badge idle">Waiting to start</span>
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="h-2 w-full rounded-full bg-muted">
+                                        <div id="progress" class="h-2 rounded-full bg-primary transition-all" style="width:0%;"></div>
+                                    </div>
+                                    <span id="progressText" class="text-xs text-muted-foreground whitespace-nowrap">0 / 0 rounds</span>
+                                </div>
+
+                                <!-- Meeting context / branch tree -->
+                                <div id="meetingDagContainer" class="meeting-dag-panel collapsed mt-2" data-dag-panel>
+                                    <div class="dag-header">
+                                        <span>🧭 Meeting Flow (DAG)</span>
+                                        <button type="button" class="dag-toggle-btn" id="dagToggleBtn" aria-expanded="false">Expand</button>
+                                    </div>
+                                    <div id="meetingDagBody" class="dag-body hidden"></div>
+                                </div>
+                                <div id="phasePrompt" class="hidden rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                                    <span id="phasePromptTip">End current phase and proceed to next step?</span>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <button id="phaseAdvanceBtn" class="hidden inline-flex h-9 px-3 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-medium shadow hover:bg-primary/90 transition-colors">
+                                        End Phase
+                                    </button>
+                                    <button id="phaseContinueBtn" class="hidden inline-flex h-9 px-3 items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
+                                        Continue Writing
+                                    </button>
+                                </div>
+                                <div id="uploadedFilesList" class="rounded-md border border-dashed border-border bg-muted/50 p-3 text-xs text-muted-foreground max-h-32 overflow-y-auto"></div>
+
+                                <!-- Role Model Selection -->
+                                <div class="border-t border-border pt-3 mt-1">
+                                    <button id="toggleRoleModels" onclick="toggleRoleModels()" class="w-full flex items-center justify-between text-sm font-medium mb-2 hover:text-primary">
+                                        <span>🤖 Agent Models</span>
+                                        <svg id="roleModelsArrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div id="roleModelsPanel" class="space-y-2 hidden max-h-64 overflow-y-auto">
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">Project Manager</label>
+                                            <select id="roleSelectionProjectManager" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                                <option value="">Loading...</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">Domain Expert</label>
+                                            <select id="roleSelectionDomainExpert" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                                <option value="">Loading...</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">Critic</label>
+                                            <select id="roleSelectionCritic" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                                <option value="">Loading...</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">Model Architect</label>
+                                            <select id="roleSelectionArchitect" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                                <option value="">Loading...</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-muted-foreground">Paper Writer</label>
+                                            <select id="roleSelectionPaperWriter" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                                <option value="">Loading...</option>
+                                            </select>
+                                        </div>
+                                        <button onclick="saveRoleSelections()" class="w-full h-8 rounded-md border border-input bg-background text-xs font-medium hover:bg-accent">Save Selection</button>
+                                    </div>
+                                </div>
+
+                                <!-- Team Templates -->
+                                <div class="border-t border-border pt-3 mt-1">
+                                    <button id="toggleTeamTemplates" onclick="toggleTeamTemplates()" class="w-full flex items-center justify-between text-sm font-medium mb-2 hover:text-primary">
+                                        <span>👥 Team Templates</span>
+                                        <svg id="teamTemplatesArrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div id="teamTemplatesPanel" class="space-y-2 hidden">
+                                        <label class="text-xs text-muted-foreground">Active Template</label>
+                                        <select id="templateSelector" onchange="onTemplateChanged()" class="w-full h-8 px-2 rounded-md border border-input bg-background text-xs">
+                                            <option value="">-- Default (no template) --</option>
+                                        </select>
+                                        <div id="templateDescription" class="text-[10px] text-muted-foreground leading-snug"></div>
+                                        <div id="templateSlotsPreview" class="space-y-1"></div>
+
+                                        <div class="flex gap-1 pt-1">
+                                            <button onclick="toggleTemplateEditor()" class="flex-1 h-7 rounded-md border border-input bg-background text-[10px] font-medium hover:bg-accent">+ New / Edit</button>
+                                            <button onclick="deleteSelectedTemplate()" id="deleteTemplateBtn" class="hidden h-7 rounded-md border border-input bg-background text-[10px] font-medium hover:bg-accent text-destructive">Delete</button>
+                                        </div>
+
+                                        <div id="templateEditor" class="hidden border border-dashed border-border rounded-md p-2 space-y-2">
+                                            <input id="templateLabel" placeholder="Template name" class="w-full h-8 px-2 rounded border border-input bg-background text-xs" />
+                                            <textarea id="templateDescriptionInput" placeholder="Description" rows="2" class="w-full px-2 py-1 rounded border border-input bg-background text-xs resize-none"></textarea>
+                                            <div class="text-[10px] text-muted-foreground">Role Slots (click + to add)</div>
+                                            <div id="templateSlots" class="space-y-2"></div>
+                                            <button onclick="addTemplateSlot()" class="w-full h-7 rounded-md border border-dashed border-input bg-background text-[10px]">+ Add Slot</button>
+                                            <button onclick="saveTemplate()" class="w-full h-8 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90">Save Template</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Save dialog modal -->
+    <div id="saveDialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div class="bg-card rounded-lg p-6 max-w-md w-full mx-4 border border-border shadow-xl">
+            <h3 class="text-lg font-semibold mb-3">Save Conversation</h3>
+            <input id="saveNameInput" type="text" placeholder="Conversation name" class="w-full h-10 px-3 rounded-md border border-input bg-background mb-3 text-sm">
+            <div class="flex gap-2 justify-end">
+                <button id="saveDialogCancel" class="px-4 h-9 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent">Cancel</button>
+                <button id="saveDialogConfirm" class="px-4 h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dialog modal -->
+    <div id="loadDialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div class="bg-card rounded-lg p-6 max-w-lg w-full mx-4 border border-border shadow-xl">
+            <h3 class="text-lg font-semibold mb-3">Load Conversation</h3>
+            <div id="loadConversationsList" class="max-h-96 overflow-y-auto mb-3"></div>
+            <div class="flex justify-end">
+                <button id="loadDialogCancel" class="px-4 h-9 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}?v={{ range(10000, 99999) | random }}"></script>
+</body>
+</html>

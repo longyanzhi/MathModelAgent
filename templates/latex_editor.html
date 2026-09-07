@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" class="settings-page-html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: ['class'],
+        theme: {
+          extend: {
+            colors: {
+              border: 'hsl(214, 32%, 91%)',
+              input: 'hsl(214, 32%, 91%)',
+              ring: 'hsl(221, 83%, 53%)',
+              background: 'hsl(0, 0%, 100%)',
+              foreground: 'hsl(222, 47%, 11%)',
+              primary: { DEFAULT: 'hsl(221, 83%, 53%)', foreground: 'hsl(210, 40%, 98%)' },
+              secondary: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              muted: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(215, 16%, 47%)' },
+              accent: { DEFAULT: 'hsl(210, 40%, 96%)', foreground: 'hsl(222, 47%, 11%)' },
+              destructive: { DEFAULT: 'hsl(0, 84%, 60%)', foreground: 'hsl(210, 40%, 98%)' },
+              card: { DEFAULT: 'hsl(0, 0%, 100%)', foreground: 'hsl(222, 47%, 11%)' },
+            },
+            borderRadius: { lg: '12px', md: '10px', sm: '8px' },
+            boxShadow: { card: '0 8px 30px rgba(15, 23, 42, 0.08)' }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body class="bg-background min-h-screen settings-page">
+    <div class="max-w-7xl mx-auto px-4 py-6 space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold">LaTeX Editor</h1>
+                <p class="text-sm text-muted-foreground">Edit, compile, and preview LaTeX documents using MiKTeX</p>
+            </div>
+            <div class="flex gap-2 items-center">
+                <span id="miktexStatus" class="text-xs text-muted-foreground"></span>
+                <a href="/" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">Back to Home</a>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card shadow-card p-4 flex flex-wrap gap-2 items-center">
+            <select id="fileSelect" class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm min-w-[200px]"></select>
+            <button id="loadFileBtn" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent">Load File</button>
+            <input id="newFilename" type="text" placeholder="new-file.tex" class="flex h-10 w-40 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm">
+            <button id="newFileBtn" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent">New File</button>
+            <span class="flex-1"></span>
+            <button id="saveBtn" class="inline-flex h-10 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-accent">Save</button>
+            <button id="compileBtn" class="inline-flex h-10 items-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium shadow hover:bg-primary/90">Compile PDF</button>
+        </div>
+
+        <div id="statusBar" class="hidden rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[60vh]">
+            <div class="rounded-xl border border-border bg-card shadow-card flex flex-col overflow-hidden">
+                <div class="px-4 py-2 border-b border-border text-sm font-medium flex items-center justify-between">
+                    <span>LaTeX Source</span>
+                    <span id="currentFilename" class="text-xs text-muted-foreground"></span>
+                </div>
+                <textarea id="editor" spellcheck="false"
+                          class="flex-1 w-full p-4 font-mono text-sm bg-background outline-none resize-none"
+                          placeholder="% Open or create a .tex file on the left, then click Compile PDF."
+                ></textarea>
+            </div>
+            <div class="rounded-xl border border-border bg-card shadow-card flex flex-col overflow-hidden">
+                <div class="px-4 py-2 border-b border-border text-sm font-medium flex items-center justify-between">
+                    <span>PDF Preview</span>
+                    <a id="downloadLink" class="text-xs text-primary hidden" download>Download</a>
+                </div>
+                <iframe id="pdfFrame" class="flex-1 w-full bg-background" src="about:blank"></iframe>
+            </div>
+        </div>
+
+        <div id="logSection" class="rounded-xl border border-border bg-card shadow-card overflow-hidden hidden">
+            <div class="px-4 py-2 border-b border-border text-sm font-medium">Compile Log (last 3KB)</div>
+            <pre id="logContent" class="p-4 font-mono text-xs whitespace-pre-wrap max-h-96 overflow-y-auto"></pre>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/latex_editor.js') }}"></script>
+</body>
+</html>
